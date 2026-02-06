@@ -27,7 +27,6 @@ import requests
 TOKEN = os.getenv("TOKEN")
 CRUNCHYROLL_EMAIL = os.getenv("CRUNCHYROLL_EMAIL")
 CRUNCHYROLL_PASSWORD = os.getenv("CRUNCHYROLL_PASSWORD")
-
 MAX_CONCURRENT_DOWNLOADS = 2
 MAX_QUEUE_SIZE = 20
 TELEGRAM_FILE_LIMIT_MB = 50
@@ -51,7 +50,7 @@ async def start_cr_client():
     except Exception as e:
         logger.error(f"Crunchyroll login failed: {e}")
 
-session_cache = {}
+session_cache = {}  # {user_id: {'data': dict, 'timestamp': time}}
 
 # --- SUBTITLE PARSING (Adapted from python-crunchyroll lib) ---
 def fetch_subtitle_ass(sub_id, locale="en-US"):
@@ -294,7 +293,7 @@ async def cmd_start(message: types.Message):
     ])
     await message.answer_photo(
         "https://i.postimg.cc/QtXVtB8K/8.png",
-        caption="👋 **Welcome to Anime Downloader Bot!**\nPowered by xAI. Send a link or use buttons to search/download from Crunchyroll and more.\n\nNew: Subtitles, Dubs, Quality, Batch!",
+        caption="👋 **Welcome to Anime Downloader Bot\\!**\nPowered by xAI\\. Send a link or use buttons to search/download from Crunchyroll and more\\.\\n\\nNew: Subtitles, Dubs, Quality, Batch\\!",
         reply_markup=kb,
         parse_mode="MarkdownV2"
     )
@@ -616,20 +615,17 @@ async def process_job(job):
         if final_filename and os.path.exists(final_filename):
             os.remove(final_filename)
 
+# --- MAIN ---
 async def main():
-    await bot.delete_webhook(drop_pending_updates=True)   # ← Critical
+    await bot.delete_webhook(drop_pending_updates=True)
     await start_cr_client()
-
     for i in range(MAX_CONCURRENT_DOWNLOADS):
         asyncio.create_task(worker(i))
-
-    logger.info("🚀 Bot Started Successfully")
-    await dp.start_polling(bot, skip_updates=True)   # ← Stable on Render
+    logger.info("🚀 Bot Started")
+    await dp.start_polling(bot, skip_updates=True)
 
 if __name__ == "__main__":
     try:
         asyncio.run(main())
     except (KeyboardInterrupt, SystemExit):
         logger.info("Bot stopped.")
-    except Exception as e:
-        logger.error(f"Critical startup error: {e}")
