@@ -1,7 +1,12 @@
-aiogram>=3.24.0,<4.0.0  # Telegram bot framework; handles async messaging and callbacks
-crunpyroll>=2.4.5,<3.0.0  # Crunchyroll API client for metadata and streams
-cryptography>=46.0.0,<47.0.0  # Cryptographic primitives for subtitle decryption (AES, padding)
-pywidevine>=1.9.0,<2.0.0  # Widevine DRM handling for protected content
-requests>=2.32.0,<3.0.0  # HTTP requests for fetching subtitles and manifests
-yt-dlp>=2026.2.4  # Video downloader for non-Crunchyroll URLs (fork of youtube-dl)
-httpx>=0.28.0,<1.0.0  # HTTP client; ensures proxies support to fix TypeError
+aiogram>=3.24.0,<4.0.0
+crunpyroll>=2.4.5,<3.0.0
+cryptography>=46.0.0,<47.0.0
+pywidevine>=1.9.0,<2.0.0
+requests>=2.32.0,<3.0.0
+yt-dlp>=2026.2.4
+httpx>=0.28.0,<1.0.0
+
+# Recommended dependencies for aiogram v3
+pydantic>=2.7.0
+aiofiles>=23.2.1
+python-dotenv>=1.0.1
