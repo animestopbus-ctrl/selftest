@@ -288,7 +288,7 @@ async def download_crunchyroll_with_drm(job, audio_locale="ja-JP", sub_locale=No
 # --- HANDLERS ---
 @dp.message(CommandStart())
 async def cmd_start(message: types.Message):
-    photo = FSInputFile("intro_photo.jpg")
+    photo = FSInputFile("https://i.postimg.cc/QtXVtB8K/8.png")
     kb = InlineKeyboardMarkup(inline_keyboard=[
         [InlineKeyboardButton(text="🔍 Search Series/Movies", callback_data="search_anime")],
         [InlineKeyboardButton(text="📺 Browse Popular", callback_data="browse_popular")],
@@ -630,3 +630,4 @@ if __name__ == "__main__":
         asyncio.run(main())
     except (KeyboardInterrupt, SystemExit):
         logger.info("Bot stopped.")
+
