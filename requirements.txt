@@ -1,0 +1,6 @@
+aiogram
+crunpyroll
+cryptography
+pywidevine
+requests
+yt-dlp
