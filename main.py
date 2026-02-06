@@ -22,15 +22,12 @@ from pywidevine.device import Device
 from pywidevine.pssh import PSSH
 import yt_dlp
 import requests
-from aiogram.webhook.aiohttp_server import SimpleRequestHandler, setup_application
-from aiohttp.web import run_app
-from aiohttp.web_app import Application
 
 # --- CONFIGURATION ---
 TOKEN = os.getenv("TOKEN")
 CRUNCHYROLL_EMAIL = os.getenv("CRUNCHYROLL_EMAIL")
 CRUNCHYROLL_PASSWORD = os.getenv("CRUNCHYROLL_PASSWORD")
-WEBHOOK_URL = os.getenv("https://selftest-ory8.onrender.com")
+
 MAX_CONCURRENT_DOWNLOADS = 2
 MAX_QUEUE_SIZE = 20
 TELEGRAM_FILE_LIMIT_MB = 50
@@ -54,7 +51,7 @@ async def start_cr_client():
     except Exception as e:
         logger.error(f"Crunchyroll login failed: {e}")
 
-session_cache = {}  # {user_id: {'data': dict, 'timestamp': time}}
+session_cache = {}
 
 # --- SUBTITLE PARSING (Adapted from python-crunchyroll lib) ---
 def fetch_subtitle_ass(sub_id, locale="en-US"):
@@ -619,22 +616,20 @@ async def process_job(job):
         if final_filename and os.path.exists(final_filename):
             os.remove(final_filename)
 
-# --- MAIN ---
 async def main():
-    await bot.delete_webhook(drop_pending_updates=True)
+    await bot.delete_webhook(drop_pending_updates=True)   # ← Critical
     await start_cr_client()
+
     for i in range(MAX_CONCURRENT_DOWNLOADS):
         asyncio.create_task(worker(i))
-    logger.info("🚀 Bot Started")
-    webhook_path = "/webhook"
-    webhook_url = WEBHOOK_URL + webhook_path
-    await bot.set_webhook(webhook_url)
-    app = Application()
-    handler = SimpleRequestHandler(dispatcher=dp, bot=bot)
-    handler.register(app, path=webhook_path)
-    setup_application(app, dp, bot=bot)
-    port = int(os.getenv("PORT", 8080))
-    await run_app(app, host="0.0.0.0", port=port)
+
+    logger.info("🚀 Bot Started Successfully")
+    await dp.start_polling(bot, skip_updates=True)   # ← Stable on Render
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    try:
+        asyncio.run(main())
+    except (KeyboardInterrupt, SystemExit):
+        logger.info("Bot stopped.")
+    except Exception as e:
+        logger.error(f"Critical startup error: {e}")
