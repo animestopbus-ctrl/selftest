@@ -14,7 +14,7 @@ from cryptography.hazmat.primitives import padding as crypto_padding
 from cryptography.hazmat.backends import default_backend
 from aiogram import Bot, Dispatcher, types, F
 from aiogram.filters import CommandStart
-from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton, FSInputFile, CallbackQuery
+from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton, CallbackQuery
 from aiogram.exceptions import TelegramBadRequest
 import crunpyroll
 from pywidevine.cdm import Cdm
@@ -22,11 +22,15 @@ from pywidevine.device import Device
 from pywidevine.pssh import PSSH
 import yt_dlp
 import requests
+from aiogram.webhook.aiohttp_server import SimpleRequestHandler, setup_application
+from aiohttp.web import run_app
+from aiohttp.web_app import Application
 
 # --- CONFIGURATION ---
 TOKEN = os.getenv("TOKEN")
 CRUNCHYROLL_EMAIL = os.getenv("CRUNCHYROLL_EMAIL")
 CRUNCHYROLL_PASSWORD = os.getenv("CRUNCHYROLL_PASSWORD")
+WEBHOOK_URL = os.getenv("https://selftest-ory8.onrender.com")
 MAX_CONCURRENT_DOWNLOADS = 2
 MAX_QUEUE_SIZE = 20
 TELEGRAM_FILE_LIMIT_MB = 50
@@ -293,7 +297,7 @@ async def cmd_start(message: types.Message):
     ])
     await message.answer_photo(
         "https://i.postimg.cc/QtXVtB8K/8.png",
-        caption="👋 **Welcome to Anime Downloader Bot!**\nPowered by xAI. Send a link or use buttons to search/download from Crunchyroll and more.\n\nNew: Subtitles, Dubs, Quality, Batch!",
+        caption="👋 **Welcome to Anime Downloader Bot\!**\nPowered by xAI\. Send a link or use buttons to search/download from Crunchyroll and more\.\n\nNew: Subtitles, Dubs, Quality, Batch\!",
         reply_markup=kb,
         parse_mode="MarkdownV2"
     )
@@ -622,10 +626,15 @@ async def main():
     for i in range(MAX_CONCURRENT_DOWNLOADS):
         asyncio.create_task(worker(i))
     logger.info("🚀 Bot Started")
-    await dp.start_polling(bot, skip_updates=True)
+    webhook_path = "/webhook"
+    webhook_url = WEBHOOK_URL + webhook_path
+    await bot.set_webhook(webhook_url)
+    app = Application()
+    handler = SimpleRequestHandler(dispatcher=dp, bot=bot)
+    handler.register(app, path=webhook_path)
+    setup_application(app, dp, bot=bot)
+    port = int(os.getenv("PORT", 8080))
+    await run_app(app, host="0.0.0.0", port=port)
 
 if __name__ == "__main__":
-    try:
-        asyncio.run(main())
-    except (KeyboardInterrupt, SystemExit):
-        logger.info("Bot stopped.")
+    asyncio.run(main())
