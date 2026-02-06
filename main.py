@@ -24,9 +24,9 @@ import yt_dlp
 import requests
 
 # --- CONFIGURATION ---
-TOKEN = "8542919849:AAGT0Cl0PbeQwOY6IEBV3SgYVXHFFNIHG0M"
-CRUNCHYROLL_EMAIL = "martinez.margarita23@hotmail.com"
-CRUNCHYROLL_PASSWORD = "Juan2024"
+TOKEN = os.getenv("TOKEN")
+CRUNCHYROLL_EMAIL = os.getenv("CRUNCHYROLL_EMAIL")
+CRUNCHYROLL_PASSWORD = os.getenv("CRUNCHYROLL_PASSWORD")
 MAX_CONCURRENT_DOWNLOADS = 2
 MAX_QUEUE_SIZE = 20
 TELEGRAM_FILE_LIMIT_MB = 50
@@ -49,8 +49,6 @@ async def start_cr_client():
         logger.info("Crunchyroll client started successfully.")
     except Exception as e:
         logger.error(f"Crunchyroll login failed: {e}")
-
-asyncio.run(start_cr_client())
 
 session_cache = {}  # {user_id: {'data': dict, 'timestamp': time}}
 
@@ -288,14 +286,13 @@ async def download_crunchyroll_with_drm(job, audio_locale="ja-JP", sub_locale=No
 # --- HANDLERS ---
 @dp.message(CommandStart())
 async def cmd_start(message: types.Message):
-    photo = FSInputFile("https://i.postimg.cc/QtXVtB8K/8.png")
     kb = InlineKeyboardMarkup(inline_keyboard=[
         [InlineKeyboardButton(text="🔍 Search Series/Movies", callback_data="search_anime")],
         [InlineKeyboardButton(text="📺 Browse Popular", callback_data="browse_popular")],
         [InlineKeyboardButton(text="ℹ️ Help", callback_data="help")]
     ])
     await message.answer_photo(
-        photo,
+        "https://i.postimg.cc/QtXVtB8K/8.png",
         caption="👋 **Welcome to Anime Downloader Bot!**\nPowered by xAI. Send a link or use buttons to search/download from Crunchyroll and more.\n\nNew: Subtitles, Dubs, Quality, Batch!",
         reply_markup=kb,
         parse_mode="MarkdownV2"
@@ -315,7 +312,7 @@ async def browse_popular(callback: CallbackQuery):
         return
     active_users.add(user_id)
     try:
-        results = await cr_client.search("")  # Assuming empty query for popular or adjust accordingly
+        results = await cr_client.search("")
         if not results.items:
             await callback.message.answer("No popular results found.")
             return
@@ -620,14 +617,15 @@ async def process_job(job):
 
 # --- MAIN ---
 async def main():
+    await bot.delete_webhook(drop_pending_updates=True)
+    await start_cr_client()
     for i in range(MAX_CONCURRENT_DOWNLOADS):
         asyncio.create_task(worker(i))
     logger.info("🚀 Bot Started")
-    await dp.start_polling(bot)
+    await dp.start_polling(bot, skip_updates=True)
 
 if __name__ == "__main__":
     try:
         asyncio.run(main())
     except (KeyboardInterrupt, SystemExit):
         logger.info("Bot stopped.")
-
