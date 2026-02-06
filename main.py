@@ -297,7 +297,7 @@ async def cmd_start(message: types.Message):
     ])
     await message.answer_photo(
         "https://i.postimg.cc/QtXVtB8K/8.png",
-        caption=r"👋 **Welcome to Anime Downloader Bot!**\nPowered by xAI. Send a link or use buttons to search/download from Crunchyroll and more.\n\nNew: Subtitles, Dubs, Quality, Batch!",
+        caption="👋 **Welcome to Anime Downloader Bot!**\nPowered by xAI. Send a link or use buttons to search/download from Crunchyroll and more.\n\nNew: Subtitles, Dubs, Quality, Batch!",
         reply_markup=kb,
         parse_mode="MarkdownV2"
     )
